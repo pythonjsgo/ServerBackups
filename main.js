@@ -1,46 +1,37 @@
 const {Telegraf, Markup} = require('telegraf')
-const fs = require("fs")
+const cron = require('node-cron')
+
 
 const config = require('./config')
 const keyboards = require('./keyboards')
+const tools = require("./tools");
+
 const bot = new Telegraf(config.TOKEN)
 
+tools.CreateBackup()
+tools.NotifyAdmins("Started!")
 
-bot.command('start', (ctx) => {
+bot.start((ctx) => {
     const user_id = ctx.message.chat.id;
     if (config.admins_id.includes(user_id)) {
-        ctx.telegram.sendMessage(ctx.message.chat.id, "Online")
+        ctx.reply("Online");
+    } else {
+        tools.UnauthorizedMessage(ctx)
     }
-    else {
-        console.log(user_id)
-    }
-
 })
-
 
 bot.on('text', (ctx) => {
-    // Explicit usage
-    ctx.telegram.sendMessage(ctx.message.chat.id, 'Вопросы')
-    // Using context shortcut
-    ctx.reply(`Hello ${ctx.state.role}`)
+    const user_id = ctx.message.chat.id
+    if (config.admins_id.includes(user_id)) {
+        ctx.reply("Online");
+    } else {
+        tools.UnauthorizedMessage(ctx)
+    }
 })
+cron.schedule('0 */4 * * *', () => {
+    // send the message her
+    tools.CreateBackup()
+});
 
-
-bot.on('callback_query', (ctx) => {
-    // Explicit usage
-    ctx.telegram.answerCbQuery(ctx.callbackQuery.id)
-
-    // Using context shortcut
-    ctx.answerCbQuery()
-})
-
-bot.on('inline_query', (ctx) => {
-    const result = []
-    // Explicit usage
-    ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
-
-    // Using context shortcut
-    ctx.answerInlineQuery(result)
-})
 
 bot.launch()
