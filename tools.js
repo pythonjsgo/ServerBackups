@@ -41,7 +41,7 @@ module.exports = {
             NotifyAdmins("error: " + err)
         });
         archive.pipe(output);
-        archive.directory(config.backup_folder_path)
+        archive.directory(config.backup_folder_path, "backup")
         archive.finalize().then(function () {
                 for (const _user_id of config.admins_id) {
                     bot.telegram.sendDocument(_user_id, {
